@@ -70,5 +70,3 @@ model_arx = arx(data_id,[1 1 0]);
 model_iv = iv4(data_id,[1 1 0]);
 data_val = iddata(signal_val(:),u_val(:),0.01);
 compare(data_val,model_arx,model_iv)
-
-
