@@ -47,8 +47,8 @@ H = tf(K,[T,1]);
 
 y_pred = lsim(H,u_id,time);
 
-% figure
-% plot(filtered_signal_left), hold on, plot(y_pred)
+figure
+plot(filtered_signal_left), hold on, plot(y_pred)
 
 data_id = iddata(filtered_signal_left(:),u_id(:),0.01);
 model = iddata(y_pred(:),u_id(:),0.01);
@@ -87,7 +87,7 @@ u_val(9:145) = 7.4;
 % compare(data_val,model)
 % plot(signal_val)
 y_val = lsim(H,u_val,time);
-plot(signal_val), hold on, plot(y_val)
+plot(speedRight255PWM), hold on, plot(y_val)
 title("Validation: Filtered validation data vs model for left motor at PWM = 255")
 %% validation 2 ?? not working properly
 % load("filtered_signal_left128.mat")
@@ -113,10 +113,8 @@ H0 = feedback(H,1);
 
 C = pidtune(H, 'PID');
 
-Hd = series(C,H);
-bode(Hd)
-H01 = feedback(Hd,1);
-figure,step(H01);
+H01 = feedback(series(C,H),1);
+step(H01);
 
 t = 0 : 0.1 : 50;
 figure
@@ -130,5 +128,4 @@ lsim(H01,t.^2,t)
 clear
 H = tf(0.4444,[0.17 1]);
 C = pidtune(H, 'PID');
-H0 = feedback(H*C,1);
-step(H0)
+C
