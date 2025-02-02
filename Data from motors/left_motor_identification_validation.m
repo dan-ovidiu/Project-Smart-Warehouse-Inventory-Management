@@ -11,7 +11,18 @@ speedRight85PWM = data.("Var2");
 % 
 % figure,plot(t,speedRight85PWM), xlabel("time"),ylabel("RPM")
 % title("RPM for right motor for 85 PWM value")
+%%
+clear
+data = readtable("PWM_255.csv");
 
+speedLeft255PWM = data.("Var1");
+speedRight255PWM = data.("Var2");
+
+plot(speedLeft255PWM), xlabel("time"),ylabel("RPM");
+title("RPM for left motor for 255 PWM value");
+
+figure,plot(speedRight255PWM), xlabel("time"),ylabel("RPM");
+title("RPM for right motor for 255 PWM value");
 %% filtered signals for PWM = 85
 load("filtered_signal_left85.mat") % imported from PhyCharm
 filtered_signal_left = signal;
@@ -27,13 +38,12 @@ figure
 plot(time,speedRight85PWM)
 hold on
 plot(time,filtered_signal_right)
-%% left motor model
+%% left motor model - identificare on PWM 85 (median filtered)
 u = zeros(1,196);
 u(20:180) = 2.47;
 
 u_id = u;
 y_id = filtered_signal_left;
-% plot(filtered_signal_left)
 
 yss = 60;
 uss = 2.47;
@@ -46,9 +56,6 @@ T = (t1 - t0) / 100;
 H = tf(K,[T,1]);
 
 y_pred = lsim(H,u_id,time);
-
-% figure
-% plot(filtered_signal_left), hold on, plot(y_pred)
 
 data_id = iddata(filtered_signal_left(:),u_id(:),0.01);
 model = iddata(y_pred(:),u_id(:),0.01);
@@ -78,14 +85,12 @@ clear
 data = readtable("PWM_255.csv");
 
 speedRight255PWM = data.("Var2");
-%% validation 1 almost working: H = K / (T * s + 1), K = 24.2915, T = 0.01
+%% validation on PWM 255 working: H = K / (T * s + 1), K = 24.2915, T = 0.01
 load("filtered_signal_left255.mat")
 signal_val = signal;
 u_val = zeros(1,153);
 u_val(9:145) = 7.4; 
-% data_val = iddata(signal_val(:),u_val(:),0.01);
-% compare(data_val,model)
-% plot(signal_val)
+
 y_val = lsim(H,u_val,time);
 plot(signal_val), hold on, plot(y_val)
 title("Validation: Filtered validation data vs model for left motor at PWM = 255")
@@ -114,13 +119,13 @@ H0 = feedback(H,1);
 C = pidtune(H, 'PID');
 
 Hd = series(C,H);
-bode(Hd)
+% bode(Hd)
 H01 = feedback(Hd,1);
-figure,step(H01);
+figure,step(H01); title("Simulare model motor stang cu regulatorulul PI")
 
 t = 0 : 0.1 : 50;
-figure
-lsim(H01,t.^2,t)
+% figure
+% lsim(H01,t.^2,t)
 %%
 % Hc = tf(1,[1 0]);
 % Hd = series(Hc,H);
@@ -132,3 +137,11 @@ H = tf(0.4444,[0.17 1]);
 C = pidtune(H, 'PID');
 H0 = feedback(H*C,1);
 step(H0)
+
+%% Tuning the PID controller
+clear, close all
+K = 24.2915;
+T = 0.01;
+H = tf(K,[T,1]);
+% bode(H)
+H0 = feedback(H,1);
